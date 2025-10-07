@@ -25,6 +25,15 @@ app.post('/tasks', async (req,res)=>{
     }
 })
 
+app.get('/tasks', async (req,res)=>{
+    try {
+        const tasks = await TaskModel.find()
+        return res.status(200).json({message:"Tasks fetched successfully",tasks})
+    } catch (error) {
+        return res.status(500).json({message:"Internal server error" , error:error.message})
+    }
+})
+
 
 
 
