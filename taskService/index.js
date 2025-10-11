@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import TaskModel from "./models/taskModel.js";
 dotenv.config();
 import { connectDB } from "./db/connectDb.js";
+import { connectRabbitMq ,createChannel ,assertQueue} from "./queue/rabbitMq.js";
 
 
 const app = express();
@@ -19,7 +20,17 @@ app.post('/tasks', async (req,res)=>{
     }
     const task = new TaskModel({title,description,userId})
     try {
-        await task.save()
+        await task.save();
+
+        const message = {
+            title,
+            taskId: task._id,
+            userId
+        }
+        if(!channel){
+            return res.status(500).json({message:"Internal server error" , error:"Channel not found"})
+        }
+        channel.sendToQueue(process.env.QUEUE_NAME, Buffer.from(JSON.stringify(message)))
         return res.status(201).json({message:"Task created successfully",task})
     } catch (error) {
         return res.status(500).json({message:"Internal server error" , error:error.message})
@@ -41,6 +52,9 @@ app.get('/tasks', async (req,res)=>{
 app.listen(PORT,async ()=>{
     try {
         await connectDB();
+        const connection = await connectRabbitMq();
+        const channel = await createChannel(connection);
+        const queue = await assertQueue(channel);
         console.log("Task Service running on port", PORT)
     } catch (error) {
         console.error("Failed to start Task Service", error.message);
