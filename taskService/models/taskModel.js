@@ -3,7 +3,11 @@ import mongoose from "mongoose";
 const taskSchema = new mongoose.Schema({
     title: String,
     description: String,
-    status: String,
+    status: {
+        type:String,
+        
+        default:"todo"
+    },
     userId: String,
     createdAt: {
         type:Date,

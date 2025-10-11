@@ -14,5 +14,13 @@ services:
             - "27017:27017"
         volumes:
             - mongodb_data:/data/db
+    taskservice:
+        build: ./taskService
+        ports:
+            - "3001:3001"
+        environment:
+            - MONGO_URI=mongodb://mongodb/taskservice
+        depends_on:
+            - mongodb
 volumes:
     mongodb_data:

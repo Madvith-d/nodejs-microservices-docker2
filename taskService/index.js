@@ -4,19 +4,20 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import TaskModel from "./models/taskModel.js";
 dotenv.config();
+import { connectDB } from "./db/connectDb.js";
 
 
 const app = express();
 
 app.use(bodyParser.json());
-const PORT = process.env.PORT || 3000;
+const PORT =3001;
 
 app.post('/tasks', async (req,res)=>{
-    const {title,description,status,userId} = req.body;
-    if(!title || !description || !status || !userId){
+    const {title,description,userId} = req.body;
+    if(!title || !description || !userId){
         return res.status(400).json({message:"All fields are required"})
     }
-    const task = new TaskModel({title,description,status,userId})
+    const task = new TaskModel({title,description,userId})
     try {
         await task.save()
         return res.status(201).json({message:"Task created successfully",task})
@@ -37,6 +38,12 @@ app.get('/tasks', async (req,res)=>{
 
 
 
-app.listen(PORT,()=>{
-    console.log("Task Service running on port", PORT)
+app.listen(PORT,async ()=>{
+    try {
+        await connectDB();
+        console.log("Task Service running on port", PORT)
+    } catch (error) {
+        console.error("Failed to start Task Service", error.message);
+        process.exit(1);
+    }
 })
